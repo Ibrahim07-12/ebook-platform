@@ -13,15 +13,15 @@ import ManualPaymentModal from '../components/ManualPaymentModal';
 interface Category {
   id: number;
   name: string;
-  slug: string;
   description: string;
-  icon: string;
-  color: string;
   price: number;
   original_price: number;
   drive_link: string;
   ebooks_count: number;
   avg_rating: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
 export default function Home() {

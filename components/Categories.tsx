@@ -201,8 +201,8 @@ export default function Categories({ onCategoryPurchase }: CategoriesProps) {
                   onClick={() => onCategoryPurchase(category)}
                   className="w-full py-3 px-4 rounded-lg font-semibold text-white transition-all duration-200 hover:scale-105"
                   style={{ 
-                    backgroundColor: category.color,
-                    boxShadow: `0 4px 14px 0 ${category.color}30`
+                    backgroundColor: categoryColor,
+                    boxShadow: `0 4px 14px 0 ${categoryColor}30`
                   }}
                 >
                   Beli Sekarang
