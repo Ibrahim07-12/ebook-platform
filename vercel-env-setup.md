@@ -2,7 +2,7 @@
 
 ## Database Configuration
 ```
-DATABASE_URL=mysql://root:TWRVcujEljKPGhGPQsBldRrwGoOudXZP@mysql.railway.internal:3306/railway
+DATABASE_URL=mysql://root:TWRVcujEljKPGhGPQsBldRrwGoOudXZP@interchange.proxy.rlwy.net:46988/railway
 ```
 
 ## NextAuth Configuration

@@ -1,0 +1,11 @@
+# Railway akan otomatis detect Next.js project
+# File ini opsional, tapi bisa membantu konfigurasi
+
+[build]
+  command = "npm run build"
+
+[start]
+  command = "npm start"
+
+[env]
+  NODE_ENV = "production"
