@@ -5,7 +5,7 @@ import bcrypt from 'bcryptjs'
 import { db } from '@/lib/db'
 
 export default NextAuth({
-  debug: true, // Enable debug mode
+  debug: process.env.NODE_ENV === 'development', // Only debug in development
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID || '',
