@@ -12,10 +12,10 @@ import AuthModal from '../components/AuthModal';
 interface Category {
   id: number;
   name: string;
-  slug: string;
   description: string;
-  icon: string;
-  color: string;
+  price: number;
+  original_price: number;
+  drive_link: string;
   ebooks_count: number;
   avg_rating: number;
 }
@@ -36,7 +36,7 @@ export default function Home() {
 
   const handleCategoryPurchase = (category: Category) => {
     // Redirect to ebooks page with selected category
-    window.location.href = `/ebooks?category=${category.slug}`;
+    window.location.href = `/ebooks?category=${category.id}`;
   };
 
   const handleSubscribe = async (planId: number, planName: string, price: number) => {

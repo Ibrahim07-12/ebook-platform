@@ -16,7 +16,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       LEFT JOIN ebooks e ON c.id = e.category_id AND e.is_active = TRUE
       WHERE c.is_active = TRUE
       GROUP BY c.id
-      ORDER BY c.sort_order ASC, c.name ASC
+      ORDER BY c.name ASC
     `);
 
     // Ensure numeric values are properly formatted

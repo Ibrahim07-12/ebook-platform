@@ -4,15 +4,15 @@ import { BookOpen, Users, Star, TrendingUp, Shield, Zap } from 'lucide-react';
 interface Category {
   id: number;
   name: string;
-  slug: string;
   description: string;
-  icon: string;
-  color: string;
   price: number;
   original_price: number;
   drive_link: string;
   ebooks_count: number;
   avg_rating: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
 interface CategoriesProps {
@@ -26,6 +26,29 @@ const iconMap: { [key: string]: any } = {
   Star,
   Shield,
   Zap
+};
+
+// Default icon dan color untuk setiap kategori berdasarkan nama
+const getDefaultIcon = (categoryName: string) => {
+  if (categoryName.toLowerCase().includes('bisnis')) return 'TrendingUp';
+  if (categoryName.toLowerCase().includes('marketing')) return 'Star';
+  if (categoryName.toLowerCase().includes('kesehatan')) return 'Shield';
+  if (categoryName.toLowerCase().includes('keuangan')) return 'TrendingUp';
+  if (categoryName.toLowerCase().includes('kreatif')) return 'Zap';
+  if (categoryName.toLowerCase().includes('pendidikan')) return 'BookOpen';
+  if (categoryName.toLowerCase().includes('teknologi')) return 'Users';
+  return 'BookOpen';
+};
+
+const getDefaultColor = (categoryName: string) => {
+  if (categoryName.toLowerCase().includes('bisnis')) return '#10b981';
+  if (categoryName.toLowerCase().includes('marketing')) return '#3b82f6';
+  if (categoryName.toLowerCase().includes('kesehatan')) return '#ef4444';
+  if (categoryName.toLowerCase().includes('keuangan')) return '#f59e0b';
+  if (categoryName.toLowerCase().includes('kreatif')) return '#8b5cf6';
+  if (categoryName.toLowerCase().includes('pendidikan')) return '#06b6d4';
+  if (categoryName.toLowerCase().includes('teknologi')) return '#6366f1';
+  return '#6b7280';
 };
 
 const formatPrice = (price: number) => {
@@ -110,7 +133,9 @@ export default function Categories({ onCategoryPurchase }: CategoriesProps) {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {categories.map((category) => {
-            const IconComponent = iconMap[category.icon] || BookOpen;
+            const iconName = getDefaultIcon(category.name);
+            const IconComponent = iconMap[iconName] || BookOpen;
+            const categoryColor = getDefaultColor(category.name);
             
             return (
               <div
@@ -119,11 +144,11 @@ export default function Categories({ onCategoryPurchase }: CategoriesProps) {
               >
                 <div 
                   className="w-12 h-12 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300"
-                  style={{ backgroundColor: `${category.color}20` }}
+                  style={{ backgroundColor: `${categoryColor}20` }}
                 >
                   <IconComponent 
                     className="w-6 h-6" 
-                    style={{ color: category.color }}
+                    style={{ color: categoryColor }}
                   />
                 </div>
                 
@@ -138,7 +163,7 @@ export default function Categories({ onCategoryPurchase }: CategoriesProps) {
                 {/* Pricing */}
                 <div className="mb-4">
                   <div className="flex items-center space-x-2">
-                    <span className="text-2xl font-bold" style={{ color: category.color }}>
+                    <span className="text-2xl font-bold" style={{ color: categoryColor }}>
                       {formatPrice(category.price)}
                     </span>
                     {category.original_price > category.price && (
