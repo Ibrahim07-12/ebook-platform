@@ -1,115 +1,211 @@
-import Image from "next/image";
-import { Geist, Geist_Mono } from "next/font/google";
+import Head from 'next/head';
+import { useState } from 'react';
+import { useSession } from 'next-auth/react';
+import Navbar from '../components/Navbar';
+import Hero from '../components/Hero';
+import Categories from '../components/Categories';
+import Pricing from '../components/Pricing';
+import Features from '../components/Features';
+import Testimonials from '../components/Testimonials';
+import AuthModal from '../components/AuthModal';
+import ManualPaymentModal from '../components/ManualPaymentModal';
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+interface Category {
+  id: number;
+  name: string;
+  slug: string;
+  description: string;
+  icon: string;
+  color: string;
+  price: number;
+  original_price: number;
+  drive_link: string;
+  ebooks_count: number;
+  avg_rating: number;
+}
 
 export default function Home() {
+  const { data: session } = useSession();
+  const [isAuthModalVisible, setIsAuthModalVisible] = useState(false);
+  const [isPaymentModalVisible, setIsPaymentModalVisible] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
+  const [paymentLoading, setPaymentLoading] = useState(false);
+
+  const handleDownloadClick = () => {
+    if (!session) {
+      setIsAuthModalVisible(true);
+    } else {
+      // Redirect to ebooks page or show free ebooks
+      window.location.href = '/ebooks?category=all&price_range=free';
+    }
+  };
+
+  const handleCategoryPurchase = (category: Category) => {
+    if (!session) {
+      setIsAuthModalVisible(true);
+      return;
+    }
+    
+    setSelectedCategory(category);
+    setIsPaymentModalVisible(true);
+  };
+
+  const handlePaymentProof = async (categoryId: number, proofFile: File, paymentMethod: string) => {
+    if (!session || !selectedCategory) return;
+
+    const formData = new FormData();
+    formData.append('proof', proofFile);
+    formData.append('category_id', categoryId.toString());
+    formData.append('payment_method', paymentMethod);
+    formData.append('amount', selectedCategory.price.toString());
+
+    try {
+      const response = await fetch('/api/payment/manual', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        alert('Bukti transfer berhasil dikirim! Kami akan memverifikasi dalam 1 jam dan mengirim Google Drive link ke email Anda.');
+        setIsPaymentModalVisible(false);
+        setSelectedCategory(null);
+      } else {
+        alert('Gagal mengirim bukti transfer: ' + (data.message || 'Unknown error'));
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      alert('Terjadi kesalahan saat mengirim bukti transfer');
+    }
+  };
+
+  const handleSubscribe = async (planId: number, planName: string, price: number) => {
+    if (!session) {
+      setIsAuthModalVisible(true);
+      return;
+    }
+
+    setPaymentLoading(true);
+
+    try {
+      const response = await fetch('/api/payment/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          type: 'subscription',
+          item_id: planId,
+          amount: price,
+          plan_name: planName
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success && data.data.token) {
+        // Initialize Midtrans Snap
+        (window as any).snap.pay(data.data.token, {
+          onSuccess: function(result: any) {
+            alert('Pembayaran berhasil!');
+            window.location.reload();
+          },
+          onPending: function(result: any) {
+            alert('Menunggu pembayaran...');
+          },
+          onError: function(result: any) {
+            alert('Pembayaran gagal!');
+          },
+          onClose: function() {
+            console.log('Payment modal closed');
+          }
+        });
+      } else {
+        alert('Gagal membuat pembayaran: ' + (data.message || 'Unknown error'));
+      }
+    } catch (error) {
+      console.error('Payment error:', error);
+      alert('Terjadi kesalahan saat memproses pembayaran');
+    } finally {
+      setPaymentLoading(false);
+    }
+  };
+
   return (
-    <div
-      className={`${geistSans.className} ${geistMono.className} grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]`}
-    >
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
+    <>
+      <Head>
+        <title>EbookHub - Platform Ebook Premium Indonesia</title>
+        <meta 
+          name="description" 
+          content="Platform ebook terlengkap di Indonesia. Akses ribuan ebook premium dari berbagai kategori: digital marketing, keuangan, pendidikan, teknologi, dan banyak lagi." 
         />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              pages/index.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
+        <meta name="keywords" content="ebook, digital marketing, keuangan, investasi, pendidikan, teknologi, programming, bisnis" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="icon" href="/favicon.ico" />
+        
+        {/* Midtrans Snap */}
+        <script
+          type="text/javascript"
+          src={process.env.MIDTRANS_IS_PRODUCTION === 'true' 
+            ? "https://app.midtrans.com/snap/snap.js" 
+            : "https://app.sandbox.midtrans.com/snap/snap.js"}
+          data-client-key={process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY}
+        ></script>
+      </Head>
+
+      <Navbar onLoginClick={() => setIsAuthModalVisible(true)} />
+      
+      <main>
+        <Hero onDownloadClick={handleDownloadClick} />
+        <Categories onCategoryPurchase={handleCategoryPurchase} />
+        <Features />
+        <Pricing onSubscribe={handleSubscribe} />
+        <Testimonials />
+        
+        {/* CTA Section */}
+        <section className="py-20 bg-gradient-to-r from-emerald-600 to-blue-600">
+          <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
+            <h2 className="text-4xl font-bold text-white mb-4">
+              Mulai Perjalanan Belajar Anda
+            </h2>
+            <p className="text-xl text-emerald-100 mb-8">
+              Bergabunglah dengan ribuan pengguna yang sudah merasakan manfaat platform ebook terlengkap
+            </p>
+            <button
+              onClick={handleDownloadClick}
+              className="inline-flex items-center bg-white text-emerald-600 font-bold py-4 px-8 rounded-xl hover:bg-gray-50 transition-colors duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+            >
+              Mulai Sekarang - Gratis
+            </button>
+          </div>
+        </section>
       </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+
+      <AuthModal 
+        isVisible={isAuthModalVisible} 
+        onClose={() => setIsAuthModalVisible(false)} 
+      />
+
+      {selectedCategory && (
+        <ManualPaymentModal
+          isOpen={isPaymentModalVisible}
+          onClose={() => setIsPaymentModalVisible(false)}
+          category={selectedCategory}
+          onPaymentProof={handlePaymentProof}
+        />
+      )}
+
+      {paymentLoading && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-sm w-full mx-4">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-gray-700">Memproses pembayaran...</p>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
