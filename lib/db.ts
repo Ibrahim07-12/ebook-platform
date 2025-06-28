@@ -12,8 +12,5 @@ const dbConfig = {
 
 // Use DATABASE_URL if available (for Railway/PlanetScale)
 export const db = process.env.DATABASE_URL 
-  ? mysql.createPool({
-      uri: process.env.DATABASE_URL,
-      ssl: { rejectUnauthorized: false }
-    })
+  ? mysql.createPool(process.env.DATABASE_URL + '?ssl={"rejectUnauthorized":false}')
   : mysql.createPool(dbConfig);
