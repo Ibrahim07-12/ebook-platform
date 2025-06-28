@@ -9,6 +9,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     console.log('Categories API called');
     console.log('DATABASE_URL exists:', !!process.env.DATABASE_URL);
+    console.log('DATABASE_URL (partial):', process.env.DATABASE_URL?.substring(0, 30) + '...');
+    
+    // Test database connection first
+    try {
+      await db.query('SELECT 1');
+      console.log('Database connection successful');
+    } catch (connError) {
+      console.error('Database connection failed:', connError);
+      throw connError;
+    }
+    
+    // Test if categories table exists
+    try {
+      const [tables] = await db.query("SHOW TABLES LIKE 'categories'");
+      console.log('Categories table exists:', (tables as any[]).length > 0);
+    } catch (tableError) {
+      console.error('Error checking categories table:', tableError);
+    }
     
     const [categories] = await db.query(`
       SELECT 
