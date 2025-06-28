@@ -7,6 +7,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
+    console.log('Categories API called');
+    console.log('DATABASE_URL exists:', !!process.env.DATABASE_URL);
+    
     const [categories] = await db.query(`
       SELECT 
         c.*,
@@ -18,6 +21,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       GROUP BY c.id
       ORDER BY c.name ASC
     `);
+
+    console.log('Database query result:', categories);
+    console.log('Categories count:', (categories as any[]).length);
 
     // Ensure numeric values are properly formatted
     const formattedCategories = (categories as any[]).map(category => {

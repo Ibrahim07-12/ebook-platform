@@ -80,11 +80,17 @@ export default function Categories({ onCategoryPurchase }: CategoriesProps) {
 
   const fetchCategories = async () => {
     try {
+      console.log('Fetching categories from API...');
       const response = await fetch('/api/categories');
+      console.log('API response status:', response.status);
       const data = await response.json();
+      console.log('API response data:', data);
       
       if (data.success) {
+        console.log('Categories data:', data.data);
         setCategories(data.data);
+      } else {
+        console.error('API returned success: false', data);
       }
     } catch (error) {
       console.error('Failed to fetch categories:', error);
