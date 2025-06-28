@@ -18,34 +18,49 @@ export default NextAuth({
         password: { label: 'Password', type: 'password' }
       },
       async authorize(credentials) {
+        console.log('🔐 LOGIN ATTEMPT:', { email: credentials?.email });
+        
         if (!credentials?.email || !credentials?.password) {
+          console.log('❌ Missing credentials');
           return null
         }
 
         try {
+          console.log('🔍 Searching for user in database...');
           const [users] = await db.query(
             'SELECT id, name, email, password FROM users WHERE email = ?',
             [credentials.email]
           )
 
+          console.log('📊 Database query result:', { 
+            userCount: Array.isArray(users) ? users.length : 0,
+            email: credentials.email 
+          });
+
           if (!Array.isArray(users) || users.length === 0) {
+            console.log('❌ User not found in database');
             return null
           }
 
           const user = users[0] as any
+          console.log('👤 User found:', { id: user.id, name: user.name, email: user.email });
+          
           const isPasswordValid = await bcrypt.compare(credentials.password, user.password)
+          console.log('🔑 Password validation:', { isValid: isPasswordValid });
 
           if (!isPasswordValid) {
+            console.log('❌ Invalid password');
             return null
           }
 
+          console.log('✅ Login successful');
           return {
             id: user.id.toString(),
             name: user.name,
             email: user.email,
           }
         } catch (error) {
-          console.error('Auth error:', error)
+          console.error('❌ Auth error:', error)
           return null
         }
       },
